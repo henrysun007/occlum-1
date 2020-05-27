@@ -2,6 +2,7 @@
 mod alloc;
 mod slice_alloc;
 mod slice_ext;
+mod test;
 
 use super::*;
 

@@ -23,6 +23,8 @@ rcore-fs-mountfs = { path = "../../deps/sefs/rcore-fs-mountfs" }
 rcore-fs-unionfs = { path = "../../deps/sefs/rcore-fs-unionfs" }
 serde = { path = "../../deps/serde-sgx/serde", features = ["derive"] }
 serde_json = { path = "../../deps/serde-json-sgx" }
+inventory = { version = "0.1.9" }
+occlum_test_proc_macro = { path = "./src/unit_test/proc_macro" }
 
 [patch.'https://github.com/apache/teaclave-sgx-sdk.git']
 sgx_tstd = { path = "../../deps/rust-sgx-sdk/sgx_tstd" }
@@ -33,6 +35,7 @@ syscall_timing = []     # Timing for each syscall. But it has cost from more oca
 integrity_only_opt = [] # Clear bss only. It should be disabled if checking memory reads.
 sgx_file_cache = []     # Cache SgxFile objects. Invalidation is unimplemented.
 sgx1_exception_sim = [] # Simulate #PF and #GP exceptions on SGX 1
+unit_test = [] # Unit test
 
 [target.'cfg(not(target_env = "sgx"))'.dependencies]
 xmas-elf = { path = "../../deps/xmas-elf" }

@@ -416,8 +416,18 @@ macro_rules! process_syscall_table_with_callback {
             (Spawn = 360) => do_spawn(child_pid_ptr: *mut u32, path: *const i8, argv: *const *const i8, envp: *const *const i8, fdop_list: *const FdOp),
             (HandleException = 361) => do_handle_exception(info: *mut sgx_exception_info_t, fpregs: *mut FpRegs, context: *mut CpuContext),
             (HandleInterrupt = 362) => do_handle_interrupt(info: *mut sgx_interrupt_info_t, fpregs: *mut FpRegs, context: *mut CpuContext),
+            // Invoke unit test
+            (UnitTest = 363) => do_unit_test(cmd: usize, func_name: *const c_char, index: i32),
         }
     };
+}
+
+fn do_unit_test(cmd: usize, func_name: *const c_char, index: i32) -> Result<isize> {
+    #[cfg(feature = "unit_test")]
+    return unit_test::unit_test(cmd, func_name, index);
+
+    #[cfg(not(feature = "unit_test"))]
+    return_errno!(SyscallNumError::new(SyscallNum::UnitTest as u32));
 }
 
 /// System call numbers.

@@ -8,6 +8,7 @@ mod msg;
 mod msg_flags;
 mod socket_file;
 mod syscalls;
+mod test;
 mod unix_socket;
 
 pub use self::io_multiplexing::{

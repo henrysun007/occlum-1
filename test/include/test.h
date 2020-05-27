@@ -11,6 +11,11 @@
 #define MAX(a, b)               ((a) >= (b) ? (a) : (b))
 #define ARRAY_SIZE(array)   (sizeof(array)/sizeof(array[0]))
 
+#define UT_CMD_GETCOUNT 0
+#define UT_CMD_GETPASS 1
+#define UT_CMD_RUNBYNAME 2
+#define UT_CMD_RUNBYINDEX 3
+
 typedef int(*test_case_func_t)(void);
 
 typedef struct {

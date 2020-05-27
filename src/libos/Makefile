@@ -106,10 +106,18 @@ $(LIBOS_CORE_A): $(LIBOS_CORE_RS_A) $(C_OBJS) $(CXX_OBJS) $(S_OBJS) $(EDL_C_OBJS
 	@ar r $@ $(C_OBJS) $(CXX_OBJS) $(S_OBJS) $(EDL_C_OBJS)
 	@echo "GEN => $@"
 
+ifeq ($(OCCLUM_UT), 1)
+    UT_FLAGS := --features "unit_test"
+    # inventory does not work in debug mode
+    OCCLUM_RELEASE_BUILD := 1
+else
+    UT_FLAGS :=
+endif
+
 ifeq ($(OCCLUM_RELEASE_BUILD), 1)
 $(LIBOS_CORE_RS_A): $(RUST_SRCS)
-	@RUSTC_BOOTSTRAP=1 cargo build --release --target-dir=$(RUST_TARGET_DIR) -Z unstable-options --out-dir=$(RUST_OUT_DIR)
-	@echo "CARGO (release) => $@"
+	@RUSTC_BOOTSTRAP=1 cargo build --release --target-dir=$(RUST_TARGET_DIR) -Z unstable-options --out-dir=$(RUST_OUT_DIR) $(UT_FLAGS)
+	@echo "CARGO (release) $(UT_FLAGS) => $@"
 else
 $(LIBOS_CORE_RS_A): $(RUST_SRCS)
 	@RUSTC_BOOTSTRAP=1 cargo build --target-dir=$(RUST_TARGET_DIR) -Z unstable-options --out-dir=$(RUST_OUT_DIR)
