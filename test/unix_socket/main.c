@@ -64,6 +64,10 @@ int create_connceted_sockets_default(int *sockets) {
     return create_connected_sockets(sockets, "unix_socket_default_path");
 }
 
+int create_connceted_sockets_host(int *sockets) {
+    return create_connected_sockets(sockets, "cross_world_unix_socket");
+}
+
 int verify_child_echo(int *connected_sockets) {
     const char *child_prog = "/bin/hello_world";
     const char *child_argv[3] = { child_prog, ECHO_MSG, NULL };
@@ -174,12 +178,16 @@ int test_connected_sockets_inter_process(create_connection_func_t fn) {
     return ret;
 }
 
-int test_unix_socket_inter_process() {
+int test_socketpair_inter_process() {
     return test_connected_sockets_inter_process(socketpair_default);
 }
 
-int test_socketpair_inter_process() {
+int test_unix_socket_inter_process() {
     return test_connected_sockets_inter_process(create_connceted_sockets_default);
+}
+
+int test_host_unix_socket() {
+    return test_connected_sockets_inter_process(create_connceted_sockets_host);
 }
 
 int test_poll() {
@@ -239,6 +247,7 @@ int test_getname() {
 
 static test_case_t test_cases[] = {
     TEST_CASE(test_unix_socket_inter_process),
+    TEST_CASE(test_host_unix_socket),
     TEST_CASE(test_socketpair_inter_process),
     TEST_CASE(test_multiple_socketpairs),
     // TODO: recover the test after the unix sockets are rewritten by using
