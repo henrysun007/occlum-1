@@ -163,7 +163,25 @@ Occlum can be configured easily via a configuration file named `Occlum.json`, wh
                 "temporary": true
             }
         }
-    ]
+    ],
+	// Networking configuration
+    "net": {
+        // By default, occlum only supports Unix Socket communication inside libos.
+        // A Unix Socket cannot exchange data with the Unix Socket in host.
+        // To deliver flexible Unix Socket usage, we enable libos-host Unix Socket communication.
+        // User can use this feature by explicitly declaring paths in host. Then the libos Unix
+        // Socket can exchange data with the host Unix Socket based on the path or the abstract
+        // names declared below.
+        //
+        // Security: The declared names open a door for Unix Socket to send libos data outside.
+        // Make sure you know what are doing before adding to host_path and host_abstract.
+        "host_path": [
+            "example_path"
+        ],
+        "host_abstract": [
+            "example_abstract"
+        ]
+    }
 }
 ```
 

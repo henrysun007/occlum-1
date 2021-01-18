@@ -62,5 +62,12 @@
                 "temporary": true
             }
         }
-    ]
+    ],
+    "net": {
+        "host_path": [
+            "cross_world_unix_socket"
+        ],
+        "host_abstract": [
+        ]
+    }
 }

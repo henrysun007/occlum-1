@@ -90,6 +90,7 @@ pub struct Config {
     pub env: ConfigEnv,
     pub entry_points: Vec<PathBuf>,
     pub mount: Vec<ConfigMount>,
+    pub net: ConfigNet,
 }
 
 #[derive(Debug)]
@@ -135,6 +136,12 @@ pub struct ConfigMountOptions {
     pub temporary: bool,
 }
 
+#[derive(Debug)]
+pub struct ConfigNet {
+    pub host_path: Vec<String>,
+    pub host_abstract: Vec<String>,
+}
+
 impl Config {
     fn from_input(input: &InputConfig) -> Result<Config> {
         let resource_limits = ConfigResourceLimits::from_input(&input.resource_limits)?;
@@ -158,12 +165,15 @@ impl Config {
             }
             mount
         };
+        let net = ConfigNet::from_input(&input.net);
+
         Ok(Config {
             resource_limits,
             process,
             env,
             entry_points,
             mount,
+            net,
         })
     }
 }
@@ -262,6 +272,15 @@ impl ConfigMountOptions {
     }
 }
 
+impl ConfigNet {
+    fn from_input(input: &InputConfigNet) -> Self {
+        Self {
+            host_path: input.host_path.clone(),
+            host_abstract: input.host_abstract.clone(),
+        }
+    }
+}
+
 fn parse_memory_size(mem_str: &str) -> Result<usize> {
     const UNIT2FACTOR: [(&str, usize); 5] = [
         ("KB", 1024),
@@ -300,6 +319,8 @@ struct InputConfig {
     pub entry_points: Vec<String>,
     #[serde(default)]
     pub mount: Vec<InputConfigMount>,
+    #[serde(default)]
+    pub net: InputConfigNet,
 }
 
 #[derive(Deserialize, Debug)]
@@ -396,4 +417,20 @@ struct InputConfigMountOptions {
     pub layers: Option<Vec<InputConfigMount>>,
     #[serde(default)]
     pub temporary: bool,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+struct InputConfigNet {
+    pub host_path: Vec<String>,
+    pub host_abstract: Vec<String>,
+}
+
+impl Default for InputConfigNet {
+    fn default() -> Self {
+        Self {
+            host_path: Vec::new(),
+            host_abstract: Vec::new(),
+        }
+    }
 }

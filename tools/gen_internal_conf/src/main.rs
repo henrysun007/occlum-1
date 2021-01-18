@@ -171,6 +171,7 @@ fn main() {
         entry_points: occlum_config.entry_points,
         env: occlum_config.env,
         mount: gen_mount_config(occlum_conf_root_fs_mac.to_string()),
+        net: occlum_config.net,
     };
     let internal_occlum_json_str =
         serde_json::to_string_pretty(&internal_occlum_json_config).unwrap();
@@ -292,6 +293,7 @@ struct OcclumConfiguration {
     env: serde_json::Value,
     metadata: OcclumMetadata,
     mount: serde_json::Value,
+    net: serde_json::Value,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -348,4 +350,5 @@ struct InternalOcclumJson {
     entry_points: serde_json::Value,
     env: serde_json::Value,
     mount: serde_json::Value,
+    net: serde_json::Value,
 }

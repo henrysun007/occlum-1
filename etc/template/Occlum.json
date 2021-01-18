@@ -59,5 +59,11 @@
                 "temporary": true
             }
         }
-    ]
+    ],
+    "net": {
+        "host_path": [
+        ],
+        "host_abstract": [
+        ]
+    }
 }

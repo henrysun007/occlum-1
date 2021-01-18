@@ -85,6 +85,7 @@ pub extern "C" fn occlum_ecall_init(log_level: *const c_char, instance_dir: *con
         unsafe { backtrace::enable_backtrace(&ENCLAVE_PATH, PrintFormat::Short) };
     });
 
+    eprintln!("{:?}", *config::LIBOS_CONFIG);
     0
 }
 
