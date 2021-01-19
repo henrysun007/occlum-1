@@ -47,13 +47,12 @@ impl Stream {
         }
     }
 
-    pub fn peer_addr(&self) -> Result<Addr> {
+    pub fn peer_addr(&self) -> Result<Option<Addr>> {
         if let Status::Connected(endpoint) = &*self.inner() {
-            if let Some(addr) = endpoint.peer_addr() {
-                return Ok(addr);
-            }
+            Ok(endpoint.peer_addr())
+        } else {
+            return_errno!(ENOTCONN, "the socket is not connected");
         }
-        return_errno!(ENOTCONN, "the socket is not connected");
     }
 
     // TODO: create the corresponding file in the fs
@@ -165,7 +164,7 @@ impl Stream {
     // TODO: handle flags
     pub fn recvfrom(&self, buf: &mut [u8], flags: RecvFlags) -> Result<(usize, Option<Addr>)> {
         let data_len = self.read(buf)?;
-        let addr = self.peer_addr().ok();
+        let addr = self.peer_addr()?;
 
         debug!("recvfrom {:?}", addr);
 
