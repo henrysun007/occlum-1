@@ -42,6 +42,20 @@ int connect_with_server(const char *addr_string, const char *port_string) {
         THROW_ERROR("connect error");
     }
 
+    // insert test to getpeername here
+    struct sockaddr_in peername;
+    memset(&peername, 0, sizeof(peername));
+    socklen_t socklen;
+    socklen = sizeof(peername);
+    ret = getpeername(sockfd, (struct sockaddr *) &peername, &socklen);
+    if (ret < 0 || socklen != sizeof(struct sockaddr_in) || peername.sin_family != AF_INET ||
+            peername.sin_port != htons((uint16_t)strtol(port_string, NULL, 10)) ||
+            strncmp(inet_ntoa(peername.sin_addr), addr_string, strlen(addr_string))) {
+        close(sockfd);
+        THROW_ERROR("getpeername error");
+    }
+
+
     return sockfd;
 }
 

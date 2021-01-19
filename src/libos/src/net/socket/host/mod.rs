@@ -137,6 +137,46 @@ impl HostSocket {
         try_libc!(libc::ocall::shutdown(self.raw_host_fd() as i32, how.bits()));
         Ok(())
     }
+
+    pub fn addr(&self) -> Result<Option<SockAddr>> {
+        let mut sockaddr = SockAddr::default();
+        let mut addr_len = sockaddr.len();
+
+        let ret = try_libc!(libc::ocall::getsockname(
+            self.raw_host_fd() as i32,
+            sockaddr.as_mut_ptr() as *mut _,
+            &mut addr_len as *mut _ as *mut _,
+        ));
+        assert_eq!(ret, 0);
+
+        let addr_option = if addr_len != 0 {
+            sockaddr.set_len(addr_len)?;
+            Some(sockaddr)
+        } else {
+            None
+        };
+        Ok(addr_option)
+    }
+
+    pub fn peer_addr(&self) -> Result<Option<SockAddr>> {
+        let mut sockaddr = SockAddr::default();
+        let mut addr_len = sockaddr.len();
+
+        let ret = try_libc!(libc::ocall::getpeername(
+            self.raw_host_fd() as i32,
+            sockaddr.as_mut_ptr() as *mut _,
+            &mut addr_len as *mut _ as *mut _,
+        ));
+        assert_eq!(ret, 0);
+
+        let addr_option = if addr_len != 0 {
+            sockaddr.set_len(addr_len)?;
+            Some(sockaddr)
+        } else {
+            None
+        };
+        Ok(addr_option)
+    }
 }
 
 pub trait HostSocketType {

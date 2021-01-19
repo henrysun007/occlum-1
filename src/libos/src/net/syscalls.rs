@@ -256,27 +256,34 @@ pub fn do_getpeername(
         return Ok(0);
     }
 
+    let mut dst =
+        unsafe { std::slice::from_raw_parts_mut(addr as *mut _ as *mut u8, *addr_len as usize) };
+
     let file_ref = current!().file(fd as FileDesc)?;
     if let Ok(socket) = file_ref.as_host_socket() {
-        let ret = try_libc!(libc::ocall::getpeername(
-            socket.raw_host_fd() as i32,
-            addr,
-            addr_len
-        ));
-        Ok(ret as isize)
+        let name_opt = socket.peer_addr()?;
+
+        if let Some(name) = name_opt {
+            name.copy_to_slice(dst);
+            unsafe {
+                *addr_len = name.len() as u32;
+            }
+        } else {
+            unsafe {
+                *addr_len = 0;
+            }
+        }
     } else if let Ok(unix_socket) = file_ref.as_unix_socket() {
         let name = unix_socket.peer_addr()?;
-        let mut dst = unsafe {
-            std::slice::from_raw_parts_mut(addr as *mut _ as *mut u8, *addr_len as usize)
-        };
         name.copy_to_slice(dst);
         unsafe {
             *addr_len = name.raw_len() as u32;
         }
-        Ok(0)
     } else {
         return_errno!(EBADF, "not a socket")
     }
+
+    Ok(0)
 }
 
 pub fn do_getsockname(
@@ -296,20 +303,25 @@ pub fn do_getsockname(
         return_errno!(EINVAL, "input length is too short");
     }
 
+    let mut dst =
+        unsafe { std::slice::from_raw_parts_mut(addr as *mut _ as *mut u8, *addr_len as usize) };
+
     let file_ref = current!().file(fd as FileDesc)?;
     if let Ok(socket) = file_ref.as_host_socket() {
-        let ret = try_libc!(libc::ocall::getsockname(
-            socket.raw_host_fd() as i32,
-            addr,
-            addr_len
-        ));
-        Ok(ret as isize)
+        let name_opt = socket.addr()?;
+        if let Some(name) = name_opt {
+            name.copy_to_slice(dst);
+            unsafe {
+                *addr_len = name.len() as u32;
+            }
+        } else {
+            unsafe {
+                *addr_len = 0;
+            }
+        }
     } else if let Ok(unix_socket) = file_ref.as_unix_socket() {
         let name_opt = unix_socket.addr();
         if let Some(name) = name_opt {
-            let mut dst = unsafe {
-                std::slice::from_raw_parts_mut(addr as *mut _ as *mut u8, *addr_len as usize)
-            };
             name.copy_to_slice(dst);
             unsafe {
                 *addr_len = name.raw_len() as u32;
@@ -320,10 +332,11 @@ pub fn do_getsockname(
                 *addr_len = 2;
             }
         }
-        Ok(0)
     } else {
         return_errno!(EBADF, "not a socket");
     }
+
+    Ok(0)
 }
 
 pub fn do_sendto(

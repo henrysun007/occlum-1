@@ -40,6 +40,18 @@ int connect_with_child(int port, int *child_pid) {
         THROW_ERROR("bind socket failed");
     }
 
+    // insert test to getsockname here
+    struct sockaddr_in sockname;
+    memset(&sockname, 0, sizeof(sockname));
+    socklen_t socklen;
+    socklen = sizeof(sockname);
+    ret = getsockname(listen_fd, (struct sockaddr *) &sockname, &socklen);
+    if (ret < 0 || socklen != sizeof(struct sockaddr_in) || sockname.sin_family != AF_INET ||
+            sockname.sin_addr.s_addr != htonl(INADDR_ANY) || sockname.sin_port != htons(port)) {
+        close(listen_fd);
+        THROW_ERROR("getsockname failed");
+    }
+
     ret = listen(listen_fd, 10);
     if (ret < 0) {
         close(listen_fd);
