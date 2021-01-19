@@ -1,4 +1,5 @@
 use super::*;
+use config::LIBOS_CONFIG;
 use std::path::{Path, PathBuf};
 use std::{cmp, mem, slice, str};
 
@@ -81,6 +82,20 @@ impl Addr {
         }
     }
 
+    pub fn is_from_host(&self) -> bool {
+        match self {
+            Self::File(unix_path) => is_from_host_path(unix_path.path_str()),
+            Self::Abstract(path) => is_from_host_abstract(&path),
+        }
+    }
+
+    pub fn to_sockaddr(&self) -> SockAddr {
+        let (addr, len) = self.to_raw();
+        unsafe {
+            SockAddr::try_from_raw(&addr as *const _ as *const libc::sockaddr, len as u32).unwrap()
+        }
+    }
+
     fn to_raw(&self) -> (libc::sockaddr_un, usize) {
         let mut addr: libc::sockaddr_un = unsafe { mem::zeroed() };
         addr.sun_family = AddressFamily::LOCAL as libc::sa_family_t;
@@ -112,7 +127,7 @@ impl Addr {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct UnixPath {
     inner: PathBuf,
-    /// Holds the cwd when a relative path is created
+    /// Holds the cwd when a libos relative path is created
     cwd: Option<String>,
 }
 
@@ -122,7 +137,7 @@ impl UnixPath {
         let is_absolute = inner.is_absolute();
         Self {
             inner: inner,
-            cwd: if is_absolute {
+            cwd: if is_absolute || is_from_host_path(path) {
                 None
             } else {
                 let thread = current!();
@@ -134,18 +149,30 @@ impl UnixPath {
         }
     }
 
-    pub fn absolute(&self) -> String {
+    pub fn absolute(&self) -> Option<String> {
+        if is_from_host_path(self.path_str()) {
+            return None;
+        }
+
         let path_str = self.path_str();
         if self.inner.is_absolute() {
-            path_str.to_string()
+            Some(path_str.to_string())
         } else {
             let mut prefix = path_str.to_owned();
             prefix.push_str(self.cwd.as_ref().unwrap());
-            prefix
+            Some(prefix)
         }
     }
 
     pub fn path_str(&self) -> &str {
         self.inner.to_str().unwrap()
     }
+}
+
+pub fn is_from_host_path(path: &str) -> bool {
+    LIBOS_CONFIG.net.host_path.contains(&path.to_string())
+}
+
+pub fn is_from_host_abstract(abs: &str) -> bool {
+    LIBOS_CONFIG.net.host_abstract.contains(&abs.to_string())
 }

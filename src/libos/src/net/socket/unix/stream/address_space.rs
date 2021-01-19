@@ -86,7 +86,7 @@ impl AddressSpace {
 
     fn get_key(addr: &Addr) -> String {
         match addr {
-            Addr::File(unix_path) => unix_path.absolute(),
+            Addr::File(unix_path) => unix_path.absolute().unwrap(),
             Addr::Abstract(path) => addr.path_str().to_string(),
         }
     }
