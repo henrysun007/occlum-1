@@ -16,7 +16,8 @@ pub use self::events::{AtomicIoEvents, IoEvents, IoNotifier};
 pub use self::file::{File, FileRef};
 pub use self::file_ops::{
     occlum_ocall_ioctl, AccessMode, BuiltinIoctlNum, CreationFlags, FileMode, Flock, FlockType,
-    IfConf, IoctlCmd, Stat, StatusFlags, StructuredIoctlArgType, StructuredIoctlNum,
+    FsPath, IfConf, IoctlCmd, Stat, StatusFlags, StructuredIoctlArgType, StructuredIoctlNum,
+    AT_FDCWD,
 };
 pub use self::file_table::{FileDesc, FileTable, FileTableEvent, FileTableNotifier};
 pub use self::fs_view::FsView;

@@ -3,6 +3,7 @@ use super::endpoint::{end_pair, Endpoint};
 use super::*;
 use alloc::sync::Arc;
 use fs::channel::Channel;
+use fs::{do_openat, AccessMode, CreationFlags, FsPath, AT_FDCWD};
 use std::fmt;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -55,16 +56,25 @@ impl Stream {
         }
     }
 
-    // TODO: create the corresponding file in the fs
     pub fn bind(&self, addr: &Addr) -> Result<()> {
+        const DEFAULT_SOCKET_FILE_MODE: u32 = 0755;
         match &mut *self.inner() {
             Status::Unconnected(ref mut info) => {
                 if info.addr().is_some() {
                     return_errno!(EINVAL, "the socket is already bound");
                 }
 
-                // check the global address space to see if the address is avaiable before bind
                 ADDRESS_SPACE.add_binder(addr)?;
+
+                if let Addr::File(path) = addr {
+                    let fs_path = FsPath::new(&path.absolute().unwrap(), AT_FDCWD, false)?;
+                    do_openat(
+                        &fs_path,
+                        (CreationFlags::O_CREAT | CreationFlags::O_TRUNC).bits()
+                            | (AccessMode::O_WRONLY as u32),
+                        DEFAULT_SOCKET_FILE_MODE,
+                    )?;
+                }
                 info.set_addr(addr);
             }
             Status::Connected(endpoint) => {
