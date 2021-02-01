@@ -1,6 +1,9 @@
 #!/bin/bash
 PREFIX=/usr/local/occlum/x86_64-linux-musl
 THREADING=TBB
+# leave one core for other tasks 
+CORES=$(($(nproc) - 1))
+
 set -e
 
 show_usage() {
@@ -28,7 +31,7 @@ build_opencv() {
       -DBUILD_opencv_python=OFF -DBUILD_PYTHON_SUPPORT=OFF \
       -DBUILD_EXAMPLES=OFF -DWITH_FFMPEG=OFF \
       -DWITH_QT=OFF -DWITH_CUDA=OFF
-    make -j4
+    make -j$CORES
     sudo make install
     popd
 }
@@ -54,9 +57,8 @@ build_tbb() {
 build_openvino() {
     rm -rf openvino_src && mkdir openvino_src
     pushd openvino_src
-    git clone https://github.com/opencv/dldt .
-    git checkout tags/2019_R3 -b 2019_R3
-    git apply ../0001-Fix-passing-pre-increment-parameter-cpu-to-CPU_ISSET.patch
+    git clone https://github.com/openvinotoolkit/openvino .
+    git checkout tags/2020.4 -b 2020.4
     cd inference-engine
     git submodule init
     git submodule update --recursive
@@ -67,7 +69,8 @@ build_openvino() {
       -DENABLE_MKL_DNN=ON \
       -DENABLE_CLDNN=OFF \
       -DENABLE_MYRIAD=OFF \
-      -DENABLE_GNA=OFF
+      -DENABLE_GNA=OFF \
+      -DENABLE_SAMPLES=OFF 
     [ "$THREADING" == "OMP" ] && rm -rf ../temp/omp/lib/* && cp $PREFIX/lib/libgomp.so ../temp/omp/lib/libiomp5.so
     [ "$THREADING" == "TBB" ] && rm -rf ../temp/tbb/lib/* && cp $PREFIX/lib/libtbb.so ../temp/tbb/lib && cp $PREFIX/lib/libtbbmalloc.so ../temp/tbb/lib
     cd ../
@@ -84,8 +87,9 @@ build_openvino() {
       -DENABLE_CLDNN=OFF \
       -DENABLE_OPENCV=OFF \
       -DENABLE_MYRIAD=OFF \
-      -DENABLE_GNA=OFF
-    make -j4
+      -DENABLE_GNA=OFF \
+      -DENABLE_SAMPLES=OFF 
+    make -j$CORES
     popd
 }
 

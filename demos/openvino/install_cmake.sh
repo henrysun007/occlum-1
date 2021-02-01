@@ -1,8 +1,11 @@
 #!/bin/bash
 set -e
+
+CMAKE=cmake-3.19.4
+
 cd ~
-wget https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5.tar.gz && tar xf cmake-3.15.5.tar.gz
-cd cmake-3.15.5
+wget https://github.com/Kitware/CMake/releases/download/v3.19.4/${CMAKE}.tar.gz && tar xf ${CMAKE}.tar.gz
+cd ${CMAKE}
 ./bootstrap
 make -j4
 sudo make install
