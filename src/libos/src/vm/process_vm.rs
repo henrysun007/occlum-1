@@ -334,7 +334,15 @@ impl ProcessVM {
         }
 
         self.brk
-            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |old_brk| Some(new_brk));
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |old_brk| {
+                if old_brk < new_brk {
+                    let mut allocated_area = unsafe {
+                        std::slice::from_raw_parts_mut(old_brk as *mut u8, new_brk - old_brk)
+                    };
+                    allocated_area.fill(0);
+                }
+                Some(new_brk)
+            });
         Ok(new_brk)
     }
 

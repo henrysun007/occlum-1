@@ -18,6 +18,7 @@
 #![feature(slice_ptr_get)]
 #![feature(maybe_uninit_extra)]
 #![feature(get_mut_unchecked)]
+#![feature(slice_fill)]
 
 #[macro_use]
 extern crate alloc;
